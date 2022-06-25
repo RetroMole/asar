@@ -3,7 +3,8 @@ using System.Runtime.InteropServices;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 #pragma warning disable CA1401 // P/Invokes should not be visible
-
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8601 // Possible null reference assignment.
 /// <summary>
 /// Contains various functions to apply patches.
 /// </summary>
@@ -288,7 +289,7 @@ public static unsafe class Asar
             if (GetWarnings().Length > 0)
             {
                 Log.Information("[ASAR] Warnings:");
-                foreach (Asarerror w in GetWarnings())
+                foreach (Error w in GetWarnings())
                 {
                     Log.Warning("[ASAR]: {0}", w.Fullerrdata);
                 }
@@ -297,7 +298,7 @@ public static unsafe class Asar
             if (GetErrors().Length > 0)
             {
                 Log.Information("[ASAR] Errors:");
-                foreach (Asarerror e in GetErrors())
+                foreach (Error e in GetErrors())
                 {
                     Log.Error("[ASAR]: {0}", e.Fullerrdata);
                 }
@@ -318,9 +319,9 @@ public static unsafe class Asar
         public readonly int errid;
     };
 
-    private static Asarerror[] CleanErrors(RawAsarError* ptr, int length)
+    private static Error[] CleanErrors(RawAsarError* ptr, int length)
     {
-        Asarerror[] output = new Asarerror[length];
+        Error[] output = new Error[length];
 
         // Copy unmanaged to managed memory to avoid potential errors in case the area
         // gets cleared by Asar.
@@ -343,7 +344,7 @@ public static unsafe class Asar
     /// Gets all Asar current errors. They're safe to keep for as long as you want.
     /// </summary>
     /// <returns>All Asar's errors.</returns>
-    public static Asarerror[] GetErrors()
+    public static Error[] GetErrors()
     {
         RawAsarError* ptr = _GetErrors(out int length);
         return CleanErrors(ptr, length);
@@ -353,7 +354,7 @@ public static unsafe class Asar
     /// Gets all Asar current warning. They're safe to keep for as long as you want.
     /// </summary>
     /// <returns>All Asar's warnings.</returns>
-    public static Asarerror[] GetWarnings()
+    public static Error[] GetWarnings()
     {
         RawAsarError* ptr = _GetWarnings(out int length);
         return CleanErrors(ptr, length);
@@ -389,10 +390,10 @@ public static unsafe class Asar
     /// Gets all Asar current labels. They're safe to keep for as long as you want.
     /// </summary>
     /// <returns>All Asar's labels.</returns>
-    public static Asarlabel[] GetAllLabels()
+    public static Label[] GetAllLabels()
     {
         RawAsarLabel* ptr = _GetAllLabels(out int length);
-        Asarlabel[] output = new Asarlabel[length];
+        Label[] output = new Label[length];
 
         // Copy unmanaged to managed memory to avoid potential errors in case the area
         // gets cleared by Asar.
@@ -415,10 +416,10 @@ public static unsafe class Asar
     /// Gets all Asar current defines. They're safe to keep for as long as you want.
     /// </summary>
     /// <returns>All Asar's defines.</returns>
-    public static Asardefine[] GetAllDefines()
+    public static Define[] GetAllDefines()
     {
         RawAsarDefine* ptr = _GetAllDefines(out int length);
-        Asardefine[] output = new Asardefine[length];
+        Define[] output = new Define[length];
 
         // Copy unmanaged to managed memory to avoid potential errors in case the area
         // gets cleared by Asar.
@@ -454,9 +455,9 @@ public static unsafe class Asar
         public readonly int numbytes;
     };
 
-    private static Asarwrittenblock[] CleanWrittenBlocks(RawAsarWrittenBlock* ptr, int length)
+    private static WrittenBlock[] CleanWrittenBlocks(RawAsarWrittenBlock* ptr, int length)
     {
-        Asarwrittenblock[] output = new Asarwrittenblock[length];
+        WrittenBlock[] output = new WrittenBlock[length];
 
         // Copy unmanaged to managed memory to avoid potential errors in case the area
         // gets cleared by Asar.
@@ -474,106 +475,108 @@ public static unsafe class Asar
     /// Gets all Asar blocks written to the ROM. They're safe to keep for as long as you want.
     /// </summary>
     /// <returns>All Asar's blocks written to the ROM.</returns>
-    public static Asarwrittenblock[] GetWrittenBlocks()
+    public static WrittenBlock[] GetWrittenBlocks()
     {
         RawAsarWrittenBlock* ptr = _GetWrittenBlocks(out int length);
         return CleanWrittenBlocks(ptr, length);
     }
-}
-
-/// <summary>
-/// Contains full information of a Asar error or warning.
-/// </summary>
-public struct Asarerror
-{
-    public string Fullerrdata;
-    public string Rawerrdata;
-    public string Block;
-    public string Filename;
-    public int Line;
-    public string Callerfilename;
-    public int Callerline;
-    public int ErrorId;
-}
-
-/// <summary>
-/// Contains a label from Asar.
-/// </summary>
-public struct Asarlabel
-{
-    public string Name;
-    public int Location;
-}
-
-/// <summary>
-/// Contains a Asar define.
-/// </summary>
-public struct Asardefine
-{
-    public string Name;
-    public string Contents;
-}
-
-/// <summary>
-/// Contains full information on a block written to the ROM.
-/// </summary>
-public struct Asarwrittenblock
-{
-    public int Pcoffset;
-    public int Snesoffset;
-    public int Numbytes;
-}
-
-/// <summary>
-/// Defines the ROM mapper used.
-/// </summary>
-public enum MapperType
-{
-    /// <summary>
-    /// Invalid map.
-    /// </summary>
-    InvalidMapper,
 
     /// <summary>
-    /// Standard LoROM.
+    /// Contains full information of a Asar error or warning.
     /// </summary>
-    LoRom,
+    public struct Error
+    {
+        public string Fullerrdata;
+        public string Rawerrdata;
+        public string Block;
+        public string Filename;
+        public int Line;
+        public string Callerfilename;
+        public int Callerline;
+        public int ErrorId;
+    }
 
     /// <summary>
-    /// Standard HiROM.
+    /// Contains a label from Asar.
     /// </summary>
-    HiRom,
+    public struct Label
+    {
+        public string Name;
+        public int Location;
+    }
 
     /// <summary>
-    /// SA-1 ROM.
+    /// Contains a Asar define.
     /// </summary>
-    Sa1Rom,
+    public struct Define
+    {
+        public string Name;
+        public string Contents;
+    }
 
     /// <summary>
-    /// SA-1 ROM with 8 MB mapped at once.
+    /// Contains full information on a block written to the ROM.
     /// </summary>
-    BigSa1Rom,
+    public struct WrittenBlock
+    {
+        public int Pcoffset;
+        public int Snesoffset;
+        public int Numbytes;
+    }
 
     /// <summary>
-    /// Super FX ROM.
+    /// Defines the ROM mapper used.
     /// </summary>
-    SfxRom,
+    public enum MapperType
+    {
+        /// <summary>
+        /// Invalid map.
+        /// </summary>
+        InvalidMapper,
 
-    /// <summary>
-    /// ExLoROM.
-    /// </summary>
-    ExLoRom,
+        /// <summary>
+        /// Standard LoROM.
+        /// </summary>
+        LoRom,
 
-    /// <summary>
-    /// ExHiROM.
-    /// </summary>
-    ExHiRom,
+        /// <summary>
+        /// Standard HiROM.
+        /// </summary>
+        HiRom,
 
-    /// <summary>
-    /// No specific ROM mapping.
-    /// </summary>
-    NoRom
+        /// <summary>
+        /// SA-1 ROM.
+        /// </summary>
+        Sa1Rom,
+
+        /// <summary>
+        /// SA-1 ROM with 8 MB mapped at once.
+        /// </summary>
+        BigSa1Rom,
+
+        /// <summary>
+        /// Super FX ROM.
+        /// </summary>
+        SfxRom,
+
+        /// <summary>
+        /// ExLoROM.
+        /// </summary>
+        ExLoRom,
+
+        /// <summary>
+        /// ExHiROM.
+        /// </summary>
+        ExHiRom,
+
+        /// <summary>
+        /// No specific ROM mapping.
+        /// </summary>
+        NoRom
+    }
 }
 
 #pragma warning restore CA1401 // P/Invokes should not be visible
 #pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8601 // Possible null reference assignment.
