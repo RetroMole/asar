@@ -3,7 +3,7 @@
 
 cmake_minimum_required(VERSION 3.9.0)
 
-option(ASAR_GEN_EXE "Build Asar standalone application" ON)
+option(ASAR_GEN_EXE "Build Asar standalone application" OFF)
 option(ASAR_GEN_DLL "Build Asar shared library" ON)
 option(ASAR_COVERAGE "Build Asar with coverage tracking support" OFF)
 
