@@ -5,19 +5,12 @@ using System.Runtime.InteropServices;
 #pragma warning disable CA1401 // P/Invokes should not be visible
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 #pragma warning disable CS8601 // Possible null reference assignment.
-/// <summary>
-/// Contains various functions to apply patches.
-/// </summary>
-public static unsafe class Asar
+
+public static unsafe partial class Asar
 {
-    public const string DllPath = "asar";
+    public const string DllPath = "libasar";
     public const int ExpectedApiVersion = 303;
 
-    /// <summary>
-    /// Converts Asar version to string
-    /// </summary>
-    /// <param name="ver">Version</param>
-    /// <returns>String</returns>
     public static string Ver2Str(int ver)
     {
         //major*10000+minor*100+bugfix*1.
@@ -28,124 +21,74 @@ public static unsafe class Asar
         return $"{maj}.{min}{fx}";
     }
 
-    /// <summary>
-    /// Initializes Asar, should be done before doing anything.
-    /// </summary>
-    /// <returns>True if success</returns>
-    [DllImport(DllPath, EntryPoint = "asar_init", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_init")]
     [return: MarshalAs(UnmanagedType.I1)]
     private static extern bool AsarInit();
 
-    /// <summary>
-    /// Closes Asar, should be done after finishing.
-    /// </summary>
-    /// <returns>True if success</returns>
-    [DllImport(DllPath, EntryPoint = "asar_close", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_close")]
     [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool Close();
 
-    /// <summary>
-    /// Returns the version, in the format major*10000+minor*100+bugfix*1.
-    /// This means that 1.2.34 would be returned as 10234.
-    /// </summary>
-    /// <returns>Asar version</returns>
-    [DllImport(DllPath, EntryPoint = "asar_version", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_version")]
     public static extern int Version();
 
-    /// <summary>
-    /// Returns the API version, format major*100+minor. Minor is incremented on backwards compatible
-    ///  changes; major is incremented on incompatible changes. Does not have any correlation with the
-    ///  Asar version.
-    /// It's not very useful directly, since Asar.init() verifies this automatically.
-    /// </summary>
-    /// <returns>Asar API version</returns>
-    [DllImport(DllPath, EntryPoint = "asar_apiversion", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_apiversion")]
     public static extern int ApiVersion();
 
-    /// <summary>
-    /// Clears out all errors, warnings and printed statements, and clears the file cache.
-    /// Not useful for much, since patch() already does this.
-    /// </summary>
-    /// <returns>True if success</returns>
-    [DllImport(DllPath, EntryPoint = "asar_reset", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_reset")]
     [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool Reset();
 
-    [DllImport(DllPath, EntryPoint = "asar_patch", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_patch", CharSet = CharSet.Unicode)]
     [return: MarshalAs(UnmanagedType.I1)]
     private static extern bool _Patch(string patchLocation, byte* romData, int bufLen, int* romLength);
 
-    [DllImport(DllPath, EntryPoint = "asar_patch_ex", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_patch_ex")]
     [return: MarshalAs(UnmanagedType.I1)]
     private static extern bool _Patch_ex(ref RawPatchParams parameters);
 
-    /// <summary>
-    /// Returns the maximum possible size of the output ROM from asar_patch().
-    /// Giving this size to buflen guarantees you will not get any buffer too small errors;
-    /// however, it is safe to give smaller buffers if you don't expect any ROMs larger
-    /// than 4MB or something. It's not very useful directly, since Asar.patch() uses this automatically.
-    /// </summary>
-    /// <returns>Maximum output size of the ROM.</returns>
-    [DllImport(DllPath, EntryPoint = "asar_maxromsize", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_maxromsize")]
     public static extern int MaxROMSize();
 
-    [DllImport(DllPath, EntryPoint = "asar_geterrors", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_geterrors")]
     private static extern RawAsarError* _GetErrors(out int length);
 
-    [DllImport(DllPath, EntryPoint = "asar_getwarnings", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_getwarnings")]
     private static extern RawAsarError* _GetWarnings(out int length);
 
-    [DllImport(DllPath, EntryPoint = "asar_getprints", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_getprints")]
     private static extern void** _GetPrints(out int length);
 
-    [DllImport(DllPath, EntryPoint = "asar_getalllabels", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_getalllabels")]
     private static extern RawAsarLabel* _GetAllLabels(out int length);
 
-    [DllImport(DllPath, EntryPoint = "asar_getlabelval", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_getlabelval", CharSet = CharSet.Unicode)]
     private static extern int GetLabelVal(string labelName);
 
-    /// <summary>
-    /// Gets contents of a define. If define doesn't exists, a null string will be generated.
-    /// </summary>
-    /// <param name="defineName">The define name.</param>
-    /// <returns>The define content. If define has not found, this will be null.</returns>
-    [DllImport(DllPath, EntryPoint = "asar_getdefine", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_getdefine", CharSet = CharSet.Unicode)]
     [return: MarshalAs(UnmanagedType.AnsiBStr)]
     public static extern string GetDefine(string defineName);
 
-    [DllImport(DllPath, EntryPoint = "asar_getalldefines", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_getalldefines")]
     private static extern RawAsarDefine* _GetAllDefines(out int length);
 
-    [DllImport(DllPath, EntryPoint = "asar_resolvedefines", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_resolvedefines", CharSet = CharSet.Unicode)]
     [return: MarshalAs(UnmanagedType.AnsiBStr)]
     public static extern string ResolveDefines(string data, bool learnNew);
 
-    [DllImport(DllPath, EntryPoint = "asar_math", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_math", CharSet = CharSet.Unicode)]
     private static extern double AsarMath(string math, out IntPtr error);
 
-    [DllImport(DllPath, EntryPoint = "asar_getwrittenblocks", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_getwrittenblocks")]
     private static extern RawAsarWrittenBlock* _GetWrittenBlocks(out int length);
 
-    /// <summary>
-    /// Gets mapper currently used by Asar.
-    /// </summary>
-    /// <returns>Returns mapper currently used by Asar.</returns>
-    [DllImport(DllPath, EntryPoint = "asar_getmapper", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_getmapper")]
     public static extern MapperType GetMapper();
 
-    /// <summary>
-    /// Generates the contents of a symbols file for in a specific format.
-    /// </summary>
-    /// <param name="format">The symbol file format to generate</param>
-    /// <returns>Returns the textual contents of the symbols file.</returns>
-    [DllImport(DllPath, EntryPoint = "asar_getsymbolsfile", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(DllPath, EntryPoint = "asar_getsymbolsfile", CharSet = CharSet.Unicode)]
     [return: MarshalAs(UnmanagedType.AnsiBStr)]
     public static extern string GetSymbolsFile(string format = "wla");
 
-    /// <summary>
-    /// Loads and initializes the DLL. You must call this before using any other Asar function.
-    /// </summary>
-    /// <returns>True if success</returns>
     public static bool Init()
     {
         try
@@ -160,7 +103,7 @@ public static unsafe class Asar
         catch { return false; }
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    [StructLayout(LayoutKind.Sequential)]
     private struct RawPatchParams
     {
         public int structsize;
@@ -340,31 +283,18 @@ public static unsafe class Asar
         return output;
     }
 
-    /// <summary>
-    /// Gets all Asar current errors. They're safe to keep for as long as you want.
-    /// </summary>
-    /// <returns>All Asar's errors.</returns>
     public static Error[] GetErrors()
     {
         RawAsarError* ptr = _GetErrors(out int length);
         return CleanErrors(ptr, length);
     }
 
-    /// <summary>
-    /// Gets all Asar current warning. They're safe to keep for as long as you want.
-    /// </summary>
-    /// <returns>All Asar's warnings.</returns>
     public static Error[] GetWarnings()
     {
         RawAsarError* ptr = _GetWarnings(out int length);
         return CleanErrors(ptr, length);
     }
 
-    /// <summary>
-    /// Gets all prints generated by the patch
-    /// (Note: to see warnings/errors, check getwarnings() and geterrors()
-    /// </summary>
-    /// <returns>All prints</returns>
     public static string[] GetPrints()
     {
         void** ptr = _GetPrints(out int length);
@@ -386,10 +316,6 @@ public static unsafe class Asar
         public readonly int location;
     }
 
-    /// <summary>
-    /// Gets all Asar current labels. They're safe to keep for as long as you want.
-    /// </summary>
-    /// <returns>All Asar's labels.</returns>
     public static Label[] GetAllLabels()
     {
         RawAsarLabel* ptr = _GetAllLabels(out int length);
@@ -412,10 +338,7 @@ public static unsafe class Asar
         public IntPtr name;
         public IntPtr contents;
     }
-    /// <summary>
-    /// Gets all Asar current defines. They're safe to keep for as long as you want.
-    /// </summary>
-    /// <returns>All Asar's defines.</returns>
+
     public static Define[] GetAllDefines()
     {
         RawAsarDefine* ptr = _GetAllDefines(out int length);
@@ -432,12 +355,6 @@ public static unsafe class Asar
         return output;
     }
 
-    /// <summary>
-    /// Parse a string of math.
-    /// </summary>
-    /// <param name="math">The math string, i.e "1+1"</param>
-    /// <param name="error">If occurs any error, it will showed here.</param>
-    /// <returns>Product.</returns>
     public static double Math(string math, out string error)
     {
         double value = AsarMath(math, out IntPtr err);
@@ -445,7 +362,6 @@ public static unsafe class Asar
         error = Marshal.PtrToStringAnsi(err);
         return value;
     }
-
 
     [StructLayout(LayoutKind.Sequential)]
     private struct RawAsarWrittenBlock
@@ -471,19 +387,12 @@ public static unsafe class Asar
         return output;
     }
 
-    /// <summary>
-    /// Gets all Asar blocks written to the ROM. They're safe to keep for as long as you want.
-    /// </summary>
-    /// <returns>All Asar's blocks written to the ROM.</returns>
     public static WrittenBlock[] GetWrittenBlocks()
     {
         RawAsarWrittenBlock* ptr = _GetWrittenBlocks(out int length);
         return CleanWrittenBlocks(ptr, length);
     }
 
-    /// <summary>
-    /// Contains full information of a Asar error or warning.
-    /// </summary>
     public struct Error
     {
         public string Fullerrdata;
@@ -496,27 +405,18 @@ public static unsafe class Asar
         public int ErrorId;
     }
 
-    /// <summary>
-    /// Contains a label from Asar.
-    /// </summary>
     public struct Label
     {
         public string Name;
         public int Location;
     }
 
-    /// <summary>
-    /// Contains a Asar define.
-    /// </summary>
     public struct Define
     {
         public string Name;
         public string Contents;
     }
 
-    /// <summary>
-    /// Contains full information on a block written to the ROM.
-    /// </summary>
     public struct WrittenBlock
     {
         public int Pcoffset;
@@ -524,54 +424,16 @@ public static unsafe class Asar
         public int Numbytes;
     }
 
-    /// <summary>
-    /// Defines the ROM mapper used.
-    /// </summary>
     public enum MapperType
     {
-        /// <summary>
-        /// Invalid map.
-        /// </summary>
         InvalidMapper,
-
-        /// <summary>
-        /// Standard LoROM.
-        /// </summary>
         LoRom,
-
-        /// <summary>
-        /// Standard HiROM.
-        /// </summary>
         HiRom,
-
-        /// <summary>
-        /// SA-1 ROM.
-        /// </summary>
         Sa1Rom,
-
-        /// <summary>
-        /// SA-1 ROM with 8 MB mapped at once.
-        /// </summary>
         BigSa1Rom,
-
-        /// <summary>
-        /// Super FX ROM.
-        /// </summary>
         SfxRom,
-
-        /// <summary>
-        /// ExLoROM.
-        /// </summary>
         ExLoRom,
-
-        /// <summary>
-        /// ExHiROM.
-        /// </summary>
         ExHiRom,
-
-        /// <summary>
-        /// No specific ROM mapping.
-        /// </summary>
         NoRom
     }
 }
